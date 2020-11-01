@@ -17,6 +17,8 @@ var config = {
       },
     },
   },
+  pixelArt: true, // flag to phaser that we are using pixel art
+  roundPixels: true, // round pixels to an integer, eliminating floating point positions
 };
 
 var game = new Phaser.Game(config);
