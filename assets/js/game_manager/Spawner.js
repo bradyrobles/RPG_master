@@ -1,5 +1,72 @@
 class Spawner {
-    constructor(){
-        
+    constructor(config, spawnLocations, addObject, deleteObject){
+        this.id = config.id;
+        this.spawnInterval = config.spawnInterval; // used to check when to respawn game objects
+        this.limit = config.limit; // limit of objects that can be created by spawner
+        this.objectType = config.spawnerType; // Want to use a single spawner for chests and monsters
+        this.spawnLocations = spawnLocations; // all possible locations for spawner
+
+        this.addObject = addObject;
+        this.deleteObject = deleteObject;
+        this.objectsCreated = [];
+
+        this.start();
     }
+
+    start() {
+        this.interval = setInterval(() => {
+            if (this.objectsCreated.length < this.limit){
+                this.spawnObject();
+            }
+        }, this.spawnInterval);
+    }
+
+    spawnObject() {
+        // check value and type with ===
+        if (this.objectType === SpawnerType.CHEST){
+            this.spawnChest();
+        } else if (this.objectType === SpawnerType.MONSTER){
+            this.spawnMonster();
+        }
+    }
+    spawnChest() {
+        const location = this.pickSpawnLocation();
+        const chest = new ChestModel(location[0], 
+            location[1], 
+            randomNumber(10,20), 
+            this.id);
+        this.objectsCreated.push(chest);
+        this.addObject(chest.id, chest); // notify gameManager we are adding an object type CHEST
+    }
+    spawnMonster() {
+        const location = this.pickSpawnLocation();
+        const monster = new MonsterModel(location[0], 
+            location[1], 
+            randomNumber(10,20), 
+            this.id,
+            randomNumber(10,20),
+            randomNumber(3,5),
+            1
+            );
+        this.objectsCreated.push(monster);
+        this.addObject(monster.id, monster); // notify gameManager we are adding an object type CHEST
+    }
+    pickSpawnLocation() {
+        const location = this.spawnLocations[Math.floor(Math.random() * this.spawnLocations.length)];
+        const invalidLocation = this.objectsCreated.some((obj) => {
+            if (obj.x === location[0] && obj.y === location[1]){
+                return true;
+            } 
+            return false;
+            
+        });
+
+        if (invalidLocation) return this.pickSpawnLocation();
+        return location;
+    }
+    removeObject(id) {
+        this.objectsCreated = this.objectsCreated.filter(obj => obj.id !== id); // return new array of objects whose id !== id to be deleted
+        this.deleteObject(id); // notify gameManager we are deleted an object
+    }
+    
 }
