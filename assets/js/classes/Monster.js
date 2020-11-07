@@ -25,9 +25,9 @@ class Monster extends Phaser.Physics.Arcade.Image{
     }
 
     makeInactive() {
-    this.setActive(false);
-    this.setVisible(false);
-    this.body.checkCollision.none = true;
+        this.setActive(false);
+        this.setVisible(false);
+        this.body.checkCollision.none = true;
     }
 
 }
