@@ -5,7 +5,6 @@ class GameScene extends Phaser.Scene {
 
   init() {
     this.scene.launch('Ui');
-    this.score = 0;
   }
 
   create() {
@@ -26,15 +25,24 @@ class GameScene extends Phaser.Scene {
     this.goldPickupAudio = this.sound.add('goldSound', { loop: false, volume: 0.2 });
   }
 
-  createPlayer(location) {
-    this.player = new PlayerContainer(this, location[0] *2, location[1] *2, 'characters', 7);
+  createPlayer(playerModel) {
+    this.player = new PlayerContainer(
+      this, 
+      playerModel.x *2, 
+      playerModel.y *2, 
+      'characters', 
+      7,
+      playerModel.health,
+      playerModel.maxHealth,
+      playerModel.id,
+      );
   }
 
   createGroups() {
     // create a chest group
     this.chests = this.physics.add.group();
 
-    // create a monster group
+    // create a monster group of Monster Objects
     this.monsters = this.physics.add.group();
     
   }
@@ -65,10 +73,11 @@ class GameScene extends Phaser.Scene {
     let monster = this.monsters.getFirstDead();
 
     if (!monster) {
-      monster = new Monster(this, 
+      monster = new Monster(
+        this, // scene to be added to
         monsterObject.x * scaleFactor, 
         monsterObject.y * scaleFactor, 
-        'monsters', 
+        'monsters', // key
         monsterObject.frame, 
         monsterObject.id,
         monsterObject.health,
@@ -99,28 +108,42 @@ class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.chests, this.collectChest, null, this);
     // check for collisions between monster group and Tiled blocked layer
     this.physics.add.collider(this.monsters, this.map.blockedLayer);
-    // check for overlaps between player and monster game objects
-    this.physics.add.overlap(this.player, this.monsters, this.enemyOverlap, null, this);
+    // check for overlaps between player's weapon and monster game objects group
+    this.physics.add.overlap(this.player.weapon, this.monsters, this.enemyOverlap, null, this);
   }
   
-  enemyOverlap(player, enemy){
-    // make enemy game object inactive
-    enemy.makeInactive();
-    // spawn a new enemy
-    this.events.emit('destroyEnemy', enemy.id);
+  enemyOverlap(weapon, enemy){
+    // check if player is currently attacking and the sword has not already hit
+    if (this.player.playerAttacking && !this.player.swordHit){
+      this.player.swordHit = true;
+      this.events.emit('monsterAttacked', enemy.id, this.player.id);
+
+      // logic to subtract enemy health, removed from here because scope is 
+      // better defined in GameManager, simply communicate that the monster was
+      // attacked and let GameManager handle logic
+      /*
+      if (enemy.takeDamage(1) <= 0 ){
+        console.log(`Enemy ${enemy.id} died`);
+        // make enemy game object inactive
+        enemy.makeInactive();
+        // spawn a new enemy
+        this.events.emit('destroyEnemy', enemy.id);
+        
+      } else {
+        console.log(`Enemy ${enemy.id} took 1 damage, ${enemy.health} hitpoints remain`);
+      }
+      */
+      
+    }
+    
   }
 
   collectChest(player, chest) {
     // play gold pickup sound
     this.goldPickupAudio.play();
-    // update our score
-    this.score += chest.coins;
-    // update score in the ui
-    this.events.emit('updateScore', this.score);
-    // make chest game object inactive
-    chest.makeInactive();
+
     // spawn a new chest
-    this.events.emit('pickupChest', chest.id);
+    this.events.emit('pickupChest', chest.id, player.id);
   }
 
   createMap(){
@@ -130,20 +153,56 @@ class GameScene extends Phaser.Scene {
 
   createGameManager(){
     // Listener Event for spawning player
-    this.events.on('spawnPlayer', (location) => {
-      this.createPlayer(location);
+    this.events.on('spawnPlayer', (playerModel) => {
+      this.createPlayer(playerModel);
       this.addCollisions();
+    });
+
+    // Listener Event for spawning player
+    this.events.on('respawnPlayer', (playerModel) => {
+      this.player.respawn(playerModel);
     });
 
     // Listener Event for spawning chests
     this.events.on('chestSpawned', (chest) => {
       this.spawnChest(chest);
-      //console.log(chest);
+    });
+
+    // Listener Event for removing chests
+    this.events.on('chestDestroyed', (chestID) => {
+      this.chests.getChildren().forEach((chest) => {
+        if (chest.id === chestID){
+          chest.makeInactive();
+        }
+      });
     });
 
     // Listener Event for spawning monsters
     this.events.on('monsterSpawned', (monster) => {
       this.spawnMonster(monster);
+    });
+    
+    // Listener Event for removing monsters
+    this.events.on('monsterDestroyed', (monsterID) => {
+      this.monsters.getChildren().forEach((monster) => {
+        if (monster.id === monsterID){
+          monster.makeInactive();
+        }
+      });
+    });
+
+    // Listener Event for updating monsters health 
+    this.events.on('updateMonsterHealth', (monsterID, health) => {
+      this.monsters.getChildren().forEach((monster) => {
+        if (monster.id === monsterID){
+          monster.updateHealth(health);
+        }
+      });
+    });
+
+    // Listener Event for updating players health 
+    this.events.on('updatePlayerHealth', (playerID, health) => {
+      this.player.updateHealth(health);
     });
 
     // create the game manager

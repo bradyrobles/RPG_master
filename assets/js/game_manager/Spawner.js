@@ -31,25 +31,28 @@ class Spawner {
     }
     spawnChest() {
         const location = this.pickSpawnLocation();
-        const chest = new ChestModel(location[0], 
-            location[1], 
-            randomNumber(10,20), 
-            this.id);
+        const chest = new ChestModel(
+            location[0], // x
+            location[1],  // y
+            randomNumber(10,20), // gold 
+            this.id // spawnerID
+            ); 
         this.objectsCreated.push(chest);
         this.addObject(chest.id, chest); // notify gameManager we are adding an object type CHEST
     }
     spawnMonster() {
         const location = this.pickSpawnLocation();
-        const monster = new MonsterModel(location[0], 
-            location[1], 
-            randomNumber(10,20), 
-            this.id,
-            randomNumber(10,20),
-            randomNumber(3,5),
-            1
+        const monster = new MonsterModel(
+            location[0], // x
+            location[1], // y
+            randomNumber(10,20), // gold 
+            this.id, // spawnerID
+            randomNumber(10,20), // frame of spritelist
+            randomNumber(3,5), // health
+            1 // attackV
             );
         this.objectsCreated.push(monster);
-        this.addObject(monster.id, monster); // notify gameManager we are adding an object type CHEST
+        this.addObject(monster.id, monster); // notify gameManager we are adding an object type monster
     }
     pickSpawnLocation() {
         const location = this.spawnLocations[Math.floor(Math.random() * this.spawnLocations.length)];
