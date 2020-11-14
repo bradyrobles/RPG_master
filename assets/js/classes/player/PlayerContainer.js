@@ -1,7 +1,7 @@
 
 
 class PlayerContainer extends Phaser.GameObjects.Container {
-    constructor(scene, x, y, key, frame, health, maxHealth, id) {
+    constructor(scene, x, y, key, frame, health, maxHealth, id, attackAudio) {
       super(scene, x, y);
       this.scene = scene; // the scene this container will be added to
       this.velocity = 300; // the velocity when moving our player
@@ -9,6 +9,7 @@ class PlayerContainer extends Phaser.GameObjects.Container {
       this.playerAttacking = false;
       this.flipX = true;
       this.weaponHit = false;
+      this.attackAudio = attackAudio;
       
       this.health = health;
       this.maxHealth = maxHealth;
@@ -95,6 +96,7 @@ class PlayerContainer extends Phaser.GameObjects.Container {
       if (Phaser.Input.Keyboard.JustDown(cursors.space) && !this.playerAttacking){
         this.weapon.alpha = 1; // make weapon visible
         this.playerAttacking = true;
+        this.attackAudio.play();
 
         // delay call to give weapon time to hit
         this.scene.time.delayedCall(150, () => {
