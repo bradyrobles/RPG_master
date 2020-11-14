@@ -5,5 +5,6 @@ class ChestModel {
         this.x = x;
         this.y = y;
         this.gold = gold;
+        this.hearts = 3;
     }
 }
