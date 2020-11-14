@@ -87,6 +87,7 @@ class GameManager {
                 this.monsterLocations[key], 
                 this.addMonster.bind(this), // allows Spawner to call addObject, redirect to addMonster
                 this.deleteMonster.bind(this), // allows Spawner to call deleteObject, "" 
+                this.moveMonsters.bind(this),
             );
             this.spawners[spawner.id] = spawner; // adds spawner_id: spawner object to spawner dict
         });
@@ -177,5 +178,10 @@ class GameManager {
     }
     deleteMonster(monsterID){
         delete this.monsters[monsterID];
+    }
+    
+    moveMonsters(){
+        this.scene.events.emit('monsterMovement', this.monsters); // emit event for parent scene
+
     }
 }

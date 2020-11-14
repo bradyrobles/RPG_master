@@ -1,5 +1,5 @@
 class Spawner {
-    constructor(config, spawnLocations, addObject, deleteObject){
+    constructor(config, spawnLocations, addObject, deleteObject, moveObjects){
         this.id = config.id;
         this.spawnInterval = config.spawnInterval; // used to check when to respawn game objects
         this.limit = config.limit; // limit of objects that can be created by spawner
@@ -8,6 +8,7 @@ class Spawner {
 
         this.addObject = addObject;
         this.deleteObject = deleteObject;
+        this.moveObjects = moveObjects;
         this.objectsCreated = [];
 
         this.start();
@@ -19,6 +20,7 @@ class Spawner {
                 this.spawnObject();
             }
         }, this.spawnInterval);
+        if (this.objectType === SpawnerType.MONSTER) this.moveMonsters();
     }
 
     spawnObject() {
@@ -70,6 +72,16 @@ class Spawner {
     removeObject(id) {
         this.objectsCreated = this.objectsCreated.filter(obj => obj.id !== id); // return new array of objects whose id !== id to be deleted
         this.deleteObject(id); // notify gameManager we are deleted an object
+    }
+
+    moveMonsters(){
+        this.moveMonsterInterval = setInterval(() => {
+            this.objectsCreated.forEach((monster) => {
+                monster.move();
+            });
+
+            this.moveObjects();
+        }, 1000);
     }
     
 }
