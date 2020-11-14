@@ -22,6 +22,9 @@ class Monster extends Phaser.Physics.Arcade.Image{
 
         this.createHealthBar();
     }
+    update() {
+        this.updateHealthBar();
+    }
 
     createHealthBar(){
         this.healthBar = this.scene.add.graphics();
