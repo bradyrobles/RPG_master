@@ -10,4 +10,8 @@ class MonsterModel {
         this.maxHealth = health;
         this.attackV = attackV;
     }
+    
+    loseHealth(){
+        this.health -= 1;
+    }
 }
