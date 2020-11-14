@@ -28,8 +28,8 @@ class GameScene extends Phaser.Scene {
   createPlayer(playerModel) {
     this.player = new PlayerContainer(
       this, 
-      playerModel.x *2, 
-      playerModel.y *2, 
+      playerModel.x * scaleFactor, 
+      playerModel.y * scaleFactor, 
       'characters', 
       7,
       playerModel.health,
