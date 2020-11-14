@@ -1,7 +1,7 @@
 
 
 class PlayerContainer extends Phaser.GameObjects.Container {
-    constructor(scene, x, y, key, frame) {
+    constructor(scene, x, y, key, frame, health, maxHealth, id) {
       super(scene, x, y);
       this.scene = scene; // the scene this container will be added to
       this.velocity = 300; // the velocity when moving our player
@@ -9,6 +9,10 @@ class PlayerContainer extends Phaser.GameObjects.Container {
       this.playerAttacking = false;
       this.flipX = true;
       this.weaponHit = false;
+      
+      this.health = health;
+      this.maxHealth = maxHealth;
+      this.id = id;
 
       // set a size on the container
       this.setSize(64, 64);
@@ -32,19 +36,48 @@ class PlayerContainer extends Phaser.GameObjects.Container {
       this.scene.physics.world.enable(this.weapon);
       this.add(this.weapon);
       this.weapon.alpha = 0; // 0: only shown when player swinging, 1: always show
+
+      // create player health bar
+      this.createHealthBar();
+    }
+
+    createHealthBar(){
+      this.healthBar = this.scene.add.graphics();
+      this.updateHealthBar();
+    }
+
+    updateHealth(health){
+      this.health = health;
+      this.updateHealthBar();
+    }
+
+    updateHealthBar(){
+        this.healthBar.clear();
+        this.healthBar.fillStyle(0xffffff, 1);
+        this.healthBar.fillRect(this.x - 32, this.y - 40, 64, 5);
+        this.healthBar.fillGradientStyle(0xff0000, 0xfffff, 4);
+        this.healthBar.fillRect(this.x - 32, this.y - 40, 64 * (this.health/this.maxHealth), 5);
+    }
+
+    respawn(playerModel){
+      this.health = playerModel.health;
+      this.setPosition(playerModel.x, playerModel.y);
+      this.updateHealthBar();
     }
   
     update(cursors) {
+      //console.log(`${[this.x, this.y]}`); Investigate difference between this.body.x and this.x
       this.body.setVelocity(0);
       
-  
       if (cursors.left.isDown) {
         this.body.setVelocityX(-this.velocity);
         this.currentDir = Direction.LEFT;
+        this.player.flipX = false;
         this.weapon.setPosition(-40, 0)
       } else if (cursors.right.isDown) {
         this.body.setVelocityX(this.velocity);
         this.currentDir = Direction.RIGHT;
+        this.player.flipX = true; 
         this.weapon.setPosition(40, 0)
       }
   
@@ -92,6 +125,8 @@ class PlayerContainer extends Phaser.GameObjects.Container {
           this.weapon.flipX = true;
         }
       }
+
+      this.updateHealthBar();
     }
   }
   
